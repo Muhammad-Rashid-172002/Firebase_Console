@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "142028280191",
+    "project_id": "chatting-app-942de",
+    "storage_bucket": "chatting-app-942de.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:142028280191:android:9a677ccfa3391768698a4a",
+        "android_client_info": {
+          "package_name": "com.example.chatnow"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8C3uhi7jLeFubxP7jTHaZh_Z7YF8nv8c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
