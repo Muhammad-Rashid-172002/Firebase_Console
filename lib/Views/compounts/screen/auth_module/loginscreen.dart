@@ -1,5 +1,5 @@
 import 'package:chatnow/Views/compounts/screen/auth_module/SignupScreen.dart';
-import 'package:chatnow/Views/compounts/screen/home/onbording_screen/splash_screen/chatting_screen.dart';
+import 'package:chatnow/Views/compounts/screen/home/chatting_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -213,20 +213,18 @@ class _LoginScreenState extends State<LoginScreen> {
               Container(
                 height: 50,
                 width: 130,
-                child: Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        onPressed: () {},
-                        icon: Image.asset('assets/images/google.png'),
-                      ),
-                      IconButton(
-                        onPressed: () {},
-                        icon: Image.asset('assets/images/facebook.png'),
-                      ),
-                    ],
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      onPressed: () {},
+                      icon: Image.asset('assets/images/google.png'),
+                    ),
+                    IconButton(
+                      onPressed: () {},
+                      icon: Image.asset('assets/images/facebook.png'),
+                    ),
+                  ],
                 ),
               ),
             ],

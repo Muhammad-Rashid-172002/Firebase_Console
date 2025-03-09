@@ -1,5 +1,5 @@
 //import 'package:chatnow/Views/compounts/screen/home/onbording_screen/splash_screen/chatting_screen.dart';
-import 'package:chatnow/Views/compounts/screen/home/onbording_screen/splash_screen/splashscreen.dart';
+import 'package:chatnow/Views/compounts/screen/home/splash_screen/splashscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
