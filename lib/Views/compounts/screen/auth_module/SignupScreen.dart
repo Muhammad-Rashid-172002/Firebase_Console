@@ -1,3 +1,4 @@
+import 'package:chatnow/Views/compounts/screen/auth_module/loginscreen.dart';
 import 'package:chatnow/Views/compounts/screen/home/chatting_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -148,7 +149,10 @@ class _SignupscreenState extends State<Signupscreen> {
                   ),
                   TextButton(
                     onPressed: () {
-                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => LoginScreen()),
+                      );
                     },
                     child: Text('Sign in'),
                   ),
@@ -176,7 +180,6 @@ class _SignupscreenState extends State<Signupscreen> {
 
               SizedBox(height: 10),
 
-              // Social Login
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

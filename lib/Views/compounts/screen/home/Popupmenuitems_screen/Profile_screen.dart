@@ -20,9 +20,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       barrierDismissible: true,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(
-            'Are you sure you want to delete your account?',
-            style: TextStyle(fontSize: 16),
+          title: Center(
+            child: Text(
+              'Are you sure you want to delete your account Permanent?',
+              style: TextStyle(fontSize: 16),
+            ),
           ),
 
           actions: [

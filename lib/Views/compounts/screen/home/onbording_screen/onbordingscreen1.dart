@@ -1,5 +1,7 @@
+import 'package:chatnow/Views/compounts/screen/auth_module/SignupScreen.dart';
 import 'package:chatnow/Views/compounts/screen/auth_module/loginscreen.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -13,18 +15,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<Map<String, String>> _pages = [
     {
-      "image": "assets/images/onboradscreen1.PNG",
+      "image": "assets/animation/Animation - 1741712347103.json",
       "title": "Welcome to ChatNow",
       "description":
           "Find and Connect with people easily.\nStart meaningful conversations anytime,\nanywhere!",
     },
     {
-      "image": "assets/images/onboradscreen2.PNG",
+      "image": "assets/animation/Animation - 1741712677857.json",
       "title": "Secure Messaging",
       "description": "Your chats are end-to-end encrypted for privacy.",
     },
     {
-      "image": "assets/images/onboradscreen3.PNG",
+      "image": "assets/animation/Animation - 1741712291481 (1).json",
       "title": "AI-Powered Search",
       "description": "Find messages quickly using smart AI search.",
     },
@@ -35,7 +37,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await prefs.setBool("onboardingComplete", true);
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => LoginScreen()),
+      MaterialPageRoute(builder: (context) => Signupscreen()),
     );
   }
 
@@ -77,7 +79,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ),
                     SizedBox(height: 10),
-                    Image.asset(_pages[index]["image"]!),
+                    Lottie.asset(_pages[index]["image"]!),
                     SizedBox(height: 20),
                     Text(
                       _pages[index]["title"]!,
@@ -101,17 +103,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(
               _pages.length,
-              (index) => Container(
-                margin: EdgeInsets.all(4),
-                width: 10,
+              (index) => AnimatedContainer(
+                duration: Duration(milliseconds: 300),
+                margin: EdgeInsets.symmetric(horizontal: 4),
+                width: _currentIndex == index ? 20 : 10,
                 height: 10,
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _currentIndex == index ? Colors.teal : Colors.grey,
+                  borderRadius: BorderRadius.circular(10),
+                  color:
+                      _currentIndex == index
+                          ? Colors.teal
+                          : Colors.grey.withOpacity(0.5),
                 ),
               ),
             ),
           ),
+
           SizedBox(height: 20),
 
           GestureDetector(
