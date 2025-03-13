@@ -13,6 +13,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final nameController = TextEditingController();
 
   String error = '';
   final formKey = GlobalKey<FormState>();
@@ -49,6 +50,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(fontSize: 15, color: Colors.grey),
               ),
               SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: TextFormField(
+                  textCapitalization: TextCapitalization.words,
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: "Enter Name",
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your name!';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              SizedBox(height: 10),
 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -68,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: TextFormField(
@@ -126,6 +145,11 @@ class _LoginScreenState extends State<LoginScreen> {
                               email: emailController.text.trim(),
                               password: passwordController.text.trim(),
                             );
+
+                        // Store the user's name in FirebaseAuth
+                        await userCredential.user!.updateDisplayName(
+                          nameController.text.trim(),
+                        );
 
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(

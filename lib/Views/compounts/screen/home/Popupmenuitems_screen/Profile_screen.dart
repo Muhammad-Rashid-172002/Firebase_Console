@@ -16,6 +16,20 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   File? _image;
   final picker = ImagePicker();
+  User? user = FirebaseAuth.instance.currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshUser();
+  }
+
+  Future<void> _refreshUser() async {
+    await FirebaseAuth.instance.currentUser?.reload(); // Refresh user data
+    setState(() {
+      user = FirebaseAuth.instance.currentUser; // Update state
+    });
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await picker.pickImage(source: source);
@@ -23,8 +37,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _image = File(pickedFile.path);
       });
-    } else {
-      print('No image selected.');
     }
   }
 
@@ -60,7 +72,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Function to log out the user
+  // Show Confirmation Dialog for Logout
+  void _confirmLogout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Logout"),
+          content: Text("Are you sure you want to log out?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context), // Cancel
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                _logout(); // Perform logout
+              },
+              child: Text("Logout", style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _logout() async {
     await FirebaseAuth.instance.signOut();
     Navigator.pushReplacement(
@@ -69,12 +106,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Function to delete the user account permanently
+  // Show Confirmation Dialog for Account Deletion
+  void _confirmDeleteAccount(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Delete Account"),
+          content: Text(
+            "Are you sure you want to delete your account? This action cannot be undone.",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context), // Cancel
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                _deleteAccount(); // Perform account deletion
+              },
+              child: Text("Delete", style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _deleteAccount() async {
-    User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
-        await user.delete();
+        await user!.delete();
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => OnboardingScreen()),
@@ -92,58 +155,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  // Show Logout Confirmation Dialog
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Are you sure you want to log out?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _logout();
-              },
-              child: Text('Logout'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // Show Delete Account Confirmation Dialog
-  void _showDeleteDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Are you sure you want to permanently delete your account?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _deleteAccount();
-              },
-              child: Text('Delete', style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -152,6 +163,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           'Profile',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: _refreshUser, // Manual refresh button
+          ),
+        ],
       ),
       body: Center(
         child: Column(
@@ -178,35 +195,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
             SizedBox(height: 10),
-            Text('M. Rashid', style: TextStyle(fontSize: 20)),
-            Text('mrashid@gmail.com', style: TextStyle(fontSize: 15)),
+            Text(
+              user?.displayName ?? 'No Name',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              user?.email ?? 'No Email',
+              style: TextStyle(fontSize: 15, color: Colors.grey),
+            ),
             SizedBox(height: 20),
             ListTile(
               leading: Icon(Icons.person),
-              title: Text('Profile'),
+              title: Text('Edit Profile'),
               trailing: Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                Navigator.push(
+              onTap: () async {
+                await Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => EditProfileScreen()),
                 );
+                _refreshUser(); // Refresh user info when returning from EditProfileScreen
               },
             ),
             ListTile(
               leading: Icon(Icons.logout),
               trailing: Icon(Icons.arrow_forward_ios),
               title: Text('Logout'),
-              onTap: () {
-                _showLogoutDialog(context);
-              },
+              onTap: () => _confirmLogout(context),
             ),
             ListTile(
               leading: Icon(Icons.delete),
               trailing: Icon(Icons.arrow_forward_ios),
               title: Text('Delete Account'),
-              onTap: () {
-                _showDeleteDialog(context);
-              },
+              onTap: () => _confirmDeleteAccount(context),
             ),
             ListTile(
               leading: Icon(Icons.settings),

@@ -1,8 +1,7 @@
 import 'dart:io';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl_phone_field/intl_phone_field.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -14,6 +13,16 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   File? _image;
   final picker = ImagePicker();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final User? user = FirebaseAuth.instance.currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController.text = user?.displayName ?? '';
+    _emailController.text = user?.email ?? '';
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await picker.pickImage(source: source);
@@ -21,8 +30,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       setState(() {
         _image = File(pickedFile.path);
       });
-    } else {
-      print('No image selected.');
     }
   }
 
@@ -31,33 +38,52 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       context: context,
       builder: (BuildContext bc) {
         return SafeArea(
-          child: Container(
-            child: Wrap(
-              children: <Widget>[
-                ListTile(
-                  leading: Icon(Icons.photo_library),
-                  title: Text('Gallery'),
-                  onTap: () async {
-                    await _pickImage(ImageSource.gallery);
-                    if (mounted) setState(() {});
-                    Navigator.of(context).pop();
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.photo_camera),
-                  title: Text('Camera'),
-                  onTap: () async {
-                    await _pickImage(ImageSource.camera);
-                    if (mounted) setState(() {});
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            ),
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: Icon(Icons.photo_library),
+                title: Text('Gallery'),
+                onTap: () async {
+                  await _pickImage(ImageSource.gallery);
+                  if (mounted) setState(() {});
+                  Navigator.of(context).pop();
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.photo_camera),
+                title: Text('Camera'),
+                onTap: () async {
+                  await _pickImage(ImageSource.camera);
+                  if (mounted) setState(() {});
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
           ),
         );
       },
     );
+  }
+
+  Future<void> _updateProfile() async {
+    if (user != null) {
+      try {
+        await user!.updateDisplayName(_nameController.text);
+        await user!.updateEmail(_emailController.text);
+        await user!.reload();
+        FirebaseAuth.instance.currentUser;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Profile updated successfully!')),
+        );
+        Navigator.pop(context);
+      } catch (e) {
+        print("Error updating profile: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating profile. Please try again.')),
+        );
+      }
+    }
   }
 
   @override
@@ -82,7 +108,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     backgroundImage:
                         _image != null
                             ? FileImage(_image!) as ImageProvider
-                            : AssetImage(''),
+                            : AssetImage('assets/images/default_avatar.png'),
                   ),
                   Positioned(
                     bottom: 7,
@@ -103,9 +129,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextField(
+                  controller: _nameController,
                   decoration: InputDecoration(
-                    hintText: 'First Name',
-                    labelText: 'First Name',
+                    hintText: 'Full Name',
+                    labelText: 'Full Name',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -115,37 +142,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextField(
+                  controller: _emailController,
                   decoration: InputDecoration(
-                    hintText: 'Last Name',
-                    labelText: 'Last Name',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: IntlPhoneField(
-                  decoration: InputDecoration(
-                    labelText: 'Phone Number',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  initialCountryCode: 'PK',
-                  onChanged: (phone) {
-                    print(phone.completeNumber);
-                  },
-                ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Bio',
-                    labelText: 'Bio',
+                    hintText: 'Email',
+                    labelText: 'Email',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -153,20 +153,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
               SizedBox(height: 20),
-              Container(
-                width: 200,
-                height: 50,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: Colors.teal,
-                ),
-                child: Center(
-                  child: Text(
-                    'Update',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+              GestureDetector(
+                onTap: _updateProfile,
+                child: Container(
+                  width: 200,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.teal,
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Update',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
