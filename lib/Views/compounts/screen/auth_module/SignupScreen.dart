@@ -1,6 +1,8 @@
 import 'package:chatnow/Views/compounts/screen/auth_module/loginscreen.dart';
 import 'package:chatnow/Views/compounts/screen/home/chatting_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class Signupscreen extends StatefulWidget {
   const Signupscreen({super.key});
@@ -19,13 +21,46 @@ class _SignupscreenState extends State<Signupscreen> {
 
   void _signUp() {
     if (_formKey.currentState!.validate()) {
-      // If all validations pass, navigate to the next screen
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) => ChattingScreen(),
-        ), // Replace with your next screen
+        MaterialPageRoute(builder: (context) => ChattingScreen()),
       );
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      await googleSignIn.signOut(); // Ensuring fresh sign-in
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        print("Google sign-in canceled");
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithCredential(credential);
+      if (userCredential.user != null) {
+        print("Google Sign-In Successful: \${userCredential.user?.email}");
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => ChattingScreen()),
+        );
+      } else {
+        print("Sign-in failed.");
+      }
+    } catch (error) {
+      print("Google Sign-In Error: \$error");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Google Sign-In Failed: \$error")));
     }
   }
 
@@ -60,8 +95,6 @@ class _SignupscreenState extends State<Signupscreen> {
                 style: TextStyle(fontSize: 15, color: Colors.grey),
               ),
               SizedBox(height: 20),
-
-              // Name Field
               TextFormField(
                 controller: nameController,
                 decoration: InputDecoration(
@@ -72,8 +105,6 @@ class _SignupscreenState extends State<Signupscreen> {
                     (value) => value!.isEmpty ? 'Name is required' : null,
               ),
               SizedBox(height: 10),
-
-              // Email Field
               TextFormField(
                 controller: emailController,
                 decoration: InputDecoration(
@@ -90,8 +121,6 @@ class _SignupscreenState extends State<Signupscreen> {
                 },
               ),
               SizedBox(height: 10),
-
-              // Password Field
               TextFormField(
                 controller: passwordController,
                 obscureText: true,
@@ -106,8 +135,6 @@ class _SignupscreenState extends State<Signupscreen> {
                             : null,
               ),
               SizedBox(height: 10),
-
-              // Confirm Password Field
               TextFormField(
                 controller: confirmPasswordController,
                 obscureText: true,
@@ -123,8 +150,6 @@ class _SignupscreenState extends State<Signupscreen> {
                 },
               ),
               SizedBox(height: 20),
-
-              // Sign Up Button
               SizedBox(
                 width: 200,
                 child: ElevatedButton(
@@ -136,10 +161,7 @@ class _SignupscreenState extends State<Signupscreen> {
                   ),
                 ),
               ),
-
               SizedBox(height: 6),
-
-              // Already have an account?
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -158,8 +180,6 @@ class _SignupscreenState extends State<Signupscreen> {
                   ),
                 ],
               ),
-
-              // OR Divider
               Row(
                 children: [
                   Expanded(child: Divider(color: Colors.grey, thickness: 1)),
@@ -177,19 +197,17 @@ class _SignupscreenState extends State<Signupscreen> {
                   Expanded(child: Divider(color: Colors.grey, thickness: 1)),
                 ],
               ),
-
               SizedBox(height: 10),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   IconButton(
-                    onPressed: () {},
+                    onPressed: _signInWithGoogle,
                     icon: Image.asset('assets/images/google.png', height: 40),
                   ),
                   IconButton(
-                    onPressed: () {},
                     icon: Image.asset('assets/images/facebook.png', height: 40),
+                    onPressed: () {},
                   ),
                 ],
               ),

@@ -1,10 +1,10 @@
-import 'dart:ffi';
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:chatnow/Views/compounts/screen/auth_module/loginscreen.dart';
 import 'package:chatnow/Views/compounts/screen/home/Popupmenuitems_screen/profile_Editing/profile_screen.dart';
 import 'package:chatnow/Views/compounts/screen/home/onbording_screen/onbordingscreen1.dart';
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -14,72 +14,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  void _showdialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Center(
-            child: Text(
-              'Are you sure you want to delete your account Permanent?',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => OnboardingScreen()),
-                );
-              },
-              child: Text('Delete'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showdialog1(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Are you sure you want to logout?',
-            style: TextStyle(fontSize: 16),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
-                );
-              },
-              child: Text('Logout'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   File? _image;
   final picker = ImagePicker();
 
@@ -99,30 +33,112 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (BuildContext bc) {
         return SafeArea(
-          child: Container(
-            child: Wrap(
-              children: <Widget>[
-                ListTile(
-                  leading: Icon(Icons.photo_library),
-                  title: Text('Gallery'),
-                  onTap: () async {
-                    await _pickImage(ImageSource.gallery);
-                    if (mounted) setState(() {});
-                    Navigator.of(context).pop();
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.photo_camera),
-                  title: Text('Camera'),
-                  onTap: () async {
-                    await _pickImage(ImageSource.camera);
-                    if (mounted) setState(() {});
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: Icon(Icons.photo_library),
+                title: Text('Gallery'),
+                onTap: () async {
+                  await _pickImage(ImageSource.gallery);
+                  if (mounted) setState(() {});
+                  Navigator.of(context).pop();
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.photo_camera),
+                title: Text('Camera'),
+                onTap: () async {
+                  await _pickImage(ImageSource.camera);
+                  if (mounted) setState(() {});
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Function to log out the user
+  void _logout() async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+    );
+  }
+
+  // Function to delete the user account permanently
+  void _deleteAccount() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        await user.delete();
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => OnboardingScreen()),
+        );
+      } catch (e) {
+        print("Error deleting account: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Account deletion failed. Please log in again and try.",
             ),
           ),
+        );
+      }
+    }
+  }
+
+  // Show Logout Confirmation Dialog
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Are you sure you want to log out?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _logout();
+              },
+              child: Text('Logout'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Show Delete Account Confirmation Dialog
+  void _showDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Are you sure you want to permanently delete your account?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _deleteAccount();
+              },
+              child: Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
         );
       },
     );
@@ -147,7 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   backgroundImage:
                       _image != null
                           ? FileImage(_image!) as ImageProvider
-                          : AssetImage(''),
+                          : AssetImage('assets/images/default_avatar.png'),
                 ),
                 Positioned(
                   bottom: 7,
@@ -162,7 +178,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
             SizedBox(height: 10),
-            Text('M.Rashid', style: TextStyle(fontSize: 20)),
+            Text('M. Rashid', style: TextStyle(fontSize: 20)),
             Text('mrashid@gmail.com', style: TextStyle(fontSize: 15)),
             SizedBox(height: 20),
             ListTile(
@@ -181,7 +197,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               trailing: Icon(Icons.arrow_forward_ios),
               title: Text('Logout'),
               onTap: () {
-                _showdialog1(context);
+                _showLogoutDialog(context);
               },
             ),
             ListTile(
@@ -189,7 +205,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               trailing: Icon(Icons.arrow_forward_ios),
               title: Text('Delete Account'),
               onTap: () {
-                _showdialog(context);
+                _showDeleteDialog(context);
               },
             ),
             ListTile(
