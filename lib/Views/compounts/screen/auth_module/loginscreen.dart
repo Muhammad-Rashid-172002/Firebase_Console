@@ -2,6 +2,8 @@ import 'package:chatnow/Views/compounts/screen/auth_module/SignupScreen.dart';
 import 'package:chatnow/Views/compounts/screen/home/chatting_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/route_manager.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,6 +22,41 @@ class _LoginScreenState extends State<LoginScreen> {
   bool loading = false;
 
   bool _obscureText = true;
+
+  Future<void> _sigInWithGoogle() async {
+    try {
+      GoogleSignIn googleSignIn = GoogleSignIn();
+      await googleSignIn.signOut();
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        print("Google sign-in canceled");
+        return;
+      }
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithCredential(credential);
+      if (userCredential.user != null) {
+        print("Google Sign-In Successful: \${userCredential.user?.email}");
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => ChattingScreen()),
+        );
+      } else {
+        print("Sign-in failed.");
+      }
+    } catch (error) {
+      print("Google Sign-In Error: \$error");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Google Sign-In Failed: \$error")));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               SizedBox(height: 20),
               Container(
-                height: 170,
+                height: 150,
                 child: Image.asset('assets/images/Capture.PNG'),
               ),
               SizedBox(height: 10),
@@ -195,14 +232,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     "Don't have an account?",
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
-                  GestureDetector(
-                    onTap: () {
+                  TextButton(
+                    onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => Signupscreen()),
                       );
                     },
-                    child: Text('Sign up'),
+                    child: Text('Sign Up'),
                   ),
                 ],
               ),
@@ -241,7 +278,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                      onPressed: () {},
+                      onPressed: _sigInWithGoogle,
                       icon: Image.asset('assets/images/google.png'),
                     ),
                     IconButton(
