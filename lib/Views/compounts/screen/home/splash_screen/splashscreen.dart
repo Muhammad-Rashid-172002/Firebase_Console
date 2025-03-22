@@ -1,11 +1,8 @@
 import 'dart:async';
-
-import 'package:chatnow/Views/compounts/screen/auth_module/SignupScreen.dart';
 import 'package:chatnow/Views/compounts/screen/home/chatting_screen.dart';
 import 'package:chatnow/Views/compounts/screen/home/onbording_screen/onbordingscreen1.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:get/route_manager.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:lottie/lottie.dart';
 

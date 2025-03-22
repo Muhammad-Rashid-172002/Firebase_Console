@@ -1,5 +1,4 @@
 import 'package:chatnow/Views/compounts/screen/auth_module/SignupScreen.dart';
-import 'package:chatnow/Views/compounts/screen/auth_module/loginscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';

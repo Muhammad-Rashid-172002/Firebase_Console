@@ -1,5 +1,7 @@
+import 'package:chatnow/Views/compounts/screen/auth_module/forget_password/forget_password.dart';
 import 'package:chatnow/Views/compounts/screen/auth_module/loginscreen.dart';
 import 'package:chatnow/Views/compounts/screen/home/chatting_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -19,22 +21,59 @@ class _SignupscreenState extends State<Signupscreen> {
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
 
-  void _signUp() {
-    if (_formKey.currentState!.validate()) {
-      Navigator.pushReplacement(
+  bool _isLoading = false; // Loading state
+
+  Future<void> _signUp() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: emailController.text.trim(),
+            password: passwordController.text.trim(),
+          );
+
+      User? user = userCredential.user;
+      if (user != null) {
+        await FirebaseFirestore.instance.collection('Users').doc(user.uid).set({
+          'uid': user.uid,
+          'name': nameController.text.trim(),
+          'email': emailController.text.trim(),
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => ChattingScreen()),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = "Signup failed. Please try again.";
+      if (e.code == 'email-already-in-use') {
+        errorMessage = "This email is already in use.";
+      } else if (e.code == 'weak-password') {
+        errorMessage = "Password must be at least 6 characters.";
+      }
+      ScaffoldMessenger.of(
         context,
-        MaterialPageRoute(builder: (context) => ChattingScreen()),
-      );
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
+    } catch (error) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Signup Failed: $error")));
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
   Future<void> _signInWithGoogle() async {
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn();
-      await googleSignIn.signOut(); // Ensuring fresh sign-in
+      await googleSignIn.signOut();
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
-        print("Google sign-in canceled");
         return;
       }
 
@@ -48,19 +87,15 @@ class _SignupscreenState extends State<Signupscreen> {
       UserCredential userCredential = await FirebaseAuth.instance
           .signInWithCredential(credential);
       if (userCredential.user != null) {
-        print("Google Sign-In Successful: \${userCredential.user?.email}");
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => ChattingScreen()),
         );
-      } else {
-        print("Sign-in failed.");
       }
     } catch (error) {
-      print("Google Sign-In Error: \$error");
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Google Sign-In Failed: \$error")));
+      ).showSnackBar(SnackBar(content: Text("Google Sign-In Failed: $error")));
     }
   }
 
@@ -84,35 +119,35 @@ class _SignupscreenState extends State<Signupscreen> {
           key: _formKey,
           child: Column(
             children: [
-              SizedBox(height: 20),
+              CircleAvatar(radius: 53, backgroundColor: Colors.teal),
+              SizedBox(height: 10),
               Text(
                 'Sign up now to ChatNow',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                textAlign: TextAlign.center,
-                'Please enter your email and password to \nsign up',
-                style: TextStyle(fontSize: 15, color: Colors.grey),
               ),
               SizedBox(height: 20),
               TextFormField(
                 controller: nameController,
                 decoration: InputDecoration(
                   labelText: 'Enter Your Name',
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
                 ),
                 validator:
-                    (value) => value!.isEmpty ? 'Name is required' : null,
+                    (value) => value!.isEmpty ? 'Please enter name' : null,
               ),
               SizedBox(height: 10),
               TextFormField(
                 controller: emailController,
                 decoration: InputDecoration(
                   labelText: 'Enter Your Email',
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
                 ),
                 validator: (value) {
-                  if (value!.isEmpty) return 'Email is required';
+                  if (value!.isEmpty) return 'Please enter email';
                   if (!RegExp(
                     r"^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$",
                   ).hasMatch(value))
@@ -126,7 +161,9 @@ class _SignupscreenState extends State<Signupscreen> {
                 obscureText: true,
                 decoration: InputDecoration(
                   labelText: 'Enter Your Password',
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
                 ),
                 validator:
                     (value) =>
@@ -140,7 +177,9 @@ class _SignupscreenState extends State<Signupscreen> {
                 obscureText: true,
                 decoration: InputDecoration(
                   labelText: 'Confirm Password',
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
                 ),
                 validator: (value) {
                   if (value!.isEmpty) return 'Please confirm your password';
@@ -150,18 +189,21 @@ class _SignupscreenState extends State<Signupscreen> {
                 },
               ),
               SizedBox(height: 20),
-              SizedBox(
-                width: 200,
-                child: ElevatedButton(
-                  onPressed: _signUp,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
-                  child: Text(
-                    'Sign Up',
-                    style: TextStyle(fontSize: 20, color: Colors.white),
+              _isLoading
+                  ? CircularProgressIndicator()
+                  : SizedBox(
+                    width: 300,
+                    child: ElevatedButton(
+                      onPressed: _signUp,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                      ),
+                      child: Text(
+                        'Sign Up',
+                        style: TextStyle(fontSize: 20, color: Colors.white),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              SizedBox(height: 6),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -180,24 +222,7 @@ class _SignupscreenState extends State<Signupscreen> {
                   ),
                 ],
               ),
-              Row(
-                children: [
-                  Expanded(child: Divider(color: Colors.grey, thickness: 1)),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Text(
-                      "OR",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-                  Expanded(child: Divider(color: Colors.grey, thickness: 1)),
-                ],
-              ),
-              SizedBox(height: 10),
+              SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -206,7 +231,7 @@ class _SignupscreenState extends State<Signupscreen> {
                     icon: Image.asset('assets/images/google.png', height: 40),
                   ),
                   IconButton(
-                    icon: Image.asset('assets/images/facebook.png', height: 40),
+                    icon: Image.asset('assets/images/facebook.png', height: 36),
                     onPressed: () {},
                   ),
                 ],

@@ -140,7 +140,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(8.0),
                 child: TextField(
                   controller: _emailController,
                   decoration: InputDecoration(
