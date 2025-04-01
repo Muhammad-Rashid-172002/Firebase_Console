@@ -1,5 +1,5 @@
 import 'package:chatnow/Views/compounts/screen/auth_module/SignupScreen.dart';
-import 'package:chatnow/Views/compounts/screen/home/chatting_screen.dart';
+import 'package:chatnow/Views/compounts/screen/home/chats/homescreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -40,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
         print("Google Sign-In Successful: ${userCredential.user?.email}");
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => ChattingScreen()),
+          MaterialPageRoute(builder: (context) => HomeScreen()),
         );
       } else {
         print("Sign-in failed.");
@@ -72,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => ChattingScreen()),
+          MaterialPageRoute(builder: (context) => HomeScreen()),
         );
       } catch (error) {
         ScaffoldMessenger.of(

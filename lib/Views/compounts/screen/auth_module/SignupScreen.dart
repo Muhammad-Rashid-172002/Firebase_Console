@@ -1,6 +1,5 @@
-import 'package:chatnow/Views/compounts/screen/auth_module/forget_password/forget_password.dart';
 import 'package:chatnow/Views/compounts/screen/auth_module/loginscreen.dart';
-import 'package:chatnow/Views/compounts/screen/home/chatting_screen.dart';
+import 'package:chatnow/Views/compounts/screen/home/chats/homescreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -46,7 +45,7 @@ class _SignupscreenState extends State<Signupscreen> {
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => ChattingScreen()),
+          MaterialPageRoute(builder: (context) => HomeScreen()),
         );
       }
     } on FirebaseAuthException catch (e) {
@@ -89,7 +88,7 @@ class _SignupscreenState extends State<Signupscreen> {
       if (userCredential.user != null) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => ChattingScreen()),
+          MaterialPageRoute(builder: (context) => HomeScreen()),
         );
       }
     } catch (error) {

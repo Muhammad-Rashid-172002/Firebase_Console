@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:chatnow/Views/compounts/screen/home/chatting_screen.dart';
+import 'package:chatnow/Views/compounts/screen/home/chats/homescreen.dart';
 import 'package:chatnow/Views/compounts/screen/home/onbording_screen/onbordingscreen1.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +26,7 @@ class _SplashscreenState extends State<Splashscreen> {
     if (user != null) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => ChattingScreen()),
+        MaterialPageRoute(builder: (context) => HomeScreen()),
       );
     } else {
       Navigator.push(
