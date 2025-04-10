@@ -29,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedItemColor: Colors.teal,
         unselectedItemColor: Colors.grey,
         onTap: (index) {
+          print('Tapped BottomNavigationBar index: $index');
           setState(() {
             currentIndex = index;
           });
@@ -49,10 +50,12 @@ class _ChatsState extends State<Chats> {
   Stream<QuerySnapshot> getUsersData() {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
+      print("No current user found.");
       return Stream.empty();
     }
 
-    // Fetch users excluding current user
+    print("Fetching users excluding current user -----> ${currentUser.uid}");
+
     return FirebaseFirestore.instance
         .collection('chatting_users')
         .where('uid', isNotEqualTo: currentUser.uid)
@@ -92,26 +95,34 @@ class _ChatsState extends State<Chats> {
         stream: getUsersData(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
+            print('Snapshot error ----> ${snapshot.error}');
             return const Center(child: Text('Something went wrong'));
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
+            print('Waiting for data...');
             return const Center(child: CircularProgressIndicator());
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            print('No users found in snapshot.');
             return const Center(child: Text('No users found'));
           }
 
           var userData = snapshot.data!.docs;
+          print('Total users fetched  -----> ${userData.length}');
 
           return ListView.builder(
             itemCount: userData.length,
             itemBuilder: (context, index) {
               var showData = userData[index].data() as Map<String, dynamic>;
+              print(
+                'User ${index + 1}----> Email = ${showData['uEmail']}, UID = ${showData['uid']}',
+              );
 
               return ListTile(
                 onTap: () {
+                  print('Tapped on user -----> ${showData['uEmail']}');
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -140,6 +151,7 @@ class Status extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("Status screen built.");
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.teal,
@@ -158,6 +170,7 @@ class Calls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("Calls screen built.");
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.teal,
