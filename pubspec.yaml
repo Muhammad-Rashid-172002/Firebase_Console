@@ -55,8 +55,8 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/chat-app-icon-logo-design-template-770ca6add87165646ba67d1a36dfee4e_screen.jpg"
-  adaptive_icon_foreground: "assets/icon/chat-app-icon-logo-design-template-770ca6add87165646ba67d1a36dfee4e_screen.jpg"
+  image_path: "assets/icon/chat-app-logo-icon-vector.jpg"
+  adaptive_icon_foreground: "assets/icon/chat-app-logo-icon-vector.jpg"
   adaptive_icon_background: "#ffffff"  # Change background color if needed
 
 
@@ -99,6 +99,7 @@ flutter:
     - assets/images/1 (4).jpeg
     - assets/images/2 (1).jpg
     - assets/images/2 (2).jpg
+    - assets/icon/chat-app-logo-icon-vector.jpg
     - assets/icon/chat-app-icon-logo-design-template-770ca6add87165646ba67d1a36dfee4e_screen.jpg
   #   - images/a_dot_ham.jpeg
 

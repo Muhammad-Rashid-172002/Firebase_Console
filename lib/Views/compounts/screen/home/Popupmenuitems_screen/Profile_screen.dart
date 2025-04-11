@@ -159,6 +159,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.teal,
         title: Text(
           'Profile',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
@@ -173,6 +174,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: Center(
         child: Column(
           children: [
+            SizedBox(height: 50),
             Stack(
               children: [
                 CircleAvatar(
@@ -227,16 +229,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               trailing: Icon(Icons.arrow_forward_ios),
               title: Text('Delete Account'),
               onTap: () => _confirmDeleteAccount(context),
-            ),
-            ListTile(
-              leading: Icon(Icons.settings),
-              trailing: Icon(Icons.arrow_forward_ios),
-              title: Text('Settings'),
-            ),
-            ListTile(
-              leading: Icon(Icons.info),
-              trailing: Icon(Icons.arrow_forward_ios),
-              title: Text('Version'),
             ),
           ],
         ),

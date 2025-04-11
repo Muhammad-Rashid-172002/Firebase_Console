@@ -40,27 +40,29 @@ class _SplashscreenState extends State<Splashscreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.teal,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Lottie.asset('assets/animation/Animation - 1741427403941.json'),
-            SizedBox(height: 20),
-            Text(
-              'Welcome\nTo Chatting App!!',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                fontSize: 20,
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Lottie.asset('assets/animation/Animation - 1741427403941.json'),
+              SizedBox(height: 20),
+              Text(
+                'Welcome\nTo Chatting App!!',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  fontSize: 20,
+                ),
               ),
-            ),
-            SizedBox(height: 20),
-            LoadingAnimationWidget.threeArchedCircle(
-              color: Colors.white,
-              size: 50,
-            ),
-          ],
+              SizedBox(height: 20),
+              LoadingAnimationWidget.threeArchedCircle(
+                color: Colors.white,
+                size: 50,
+              ),
+            ],
+          ),
         ),
       ),
     );

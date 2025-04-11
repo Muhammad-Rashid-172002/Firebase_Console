@@ -1,11 +1,15 @@
 import 'package:chatnow/Views/compounts/screen/chat_model/chatting_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class PersonalChats extends StatefulWidget {
   final String email;
   final String uid;
+
   const PersonalChats({super.key, required this.email, required this.uid});
 
   @override
@@ -13,142 +17,159 @@ class PersonalChats extends StatefulWidget {
 }
 
 class _PersonalChatsState extends State<PersonalChats> {
-  final messageController = TextEditingController();
-  final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
-  final String? currentUserEmail = FirebaseAuth.instance.currentUser!.email;
+  final TextEditingController messageController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
+  String? currentUserId;
+  String? currentUserEmail;
 
-  // Send message
-  Future<void> sendMessage() async {
-    if (messageController.text.trim().isEmpty) return;
+  @override
+  void initState() {
+    super.initState();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      currentUserId = user.uid;
+      currentUserEmail = user.email;
+    }
+  }
 
-    ChattingModel newMessage = ChattingModel(
-      senderId: currentUserId,
-      senderEmail: currentUserEmail.toString(),
+  Future<void> pickMedia() async {
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+    );
+    if (pickedFile != null) {
+      await uploadMedia(File(pickedFile.path));
+    }
+  }
+
+  Future<void> uploadMedia(File file) async {
+    try {
+      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      Reference ref = FirebaseStorage.instance.ref().child(
+        'chat_media/$fileName',
+      );
+      UploadTask uploadTask = ref.putFile(file);
+
+      final snapshot = await uploadTask;
+      String downloadUrl = await snapshot.ref.getDownloadURL();
+
+      await sendMessage(mediaUrl: downloadUrl);
+    } catch (e) {
+      print("Upload error: $e");
+    }
+  }
+
+  Future<void> sendMessage({String? mediaUrl}) async {
+    if ((messageController.text.trim().isEmpty && mediaUrl == null) ||
+        currentUserId == null)
+      return;
+
+    final message = ChattingModel(
+      senderId: currentUserId!,
+      senderEmail: currentUserEmail ?? "Unknown",
       recieverId: widget.uid,
-      message: messageController.text,
+      message: messageController.text.trim(),
       timestamp: Timestamp.now(),
+      imageUrl: mediaUrl ?? "No image",
     );
 
-    List<String> ids = [currentUserId, widget.uid];
-    ids.sort();
-    final combineIds = ids.join("_");
-
-    print("Sending message:");
-    print("From ----> $currentUserEmail ($currentUserId)");
-    print("To ----> ${widget.email} (${widget.uid})");
-    print("Text ----> ${newMessage.message}");
-    print("Path -----> smit_chatting/$combineIds/smit_messages");
+    final ids = [currentUserId!, widget.uid]..sort();
+    final chatRoomId = ids.join("_");
 
     await FirebaseFirestore.instance
-        .collection('smit_chatting')
-        .doc(combineIds)
-        .collection('smit_messages')
-        .add(newMessage.toMap());
+        .collection('chatting')
+        .doc(chatRoomId)
+        .collection('messages')
+        .add(message.toMap());
 
     messageController.clear();
   }
 
-  // Get messages
   Stream<QuerySnapshot> getMessages() {
-    List<String> ids = [currentUserId, widget.uid];
-    ids.sort();
-    final combineIds = ids.join("_");
-
-    print("Listening to chat path: smit_chatting/$combineIds/smit_messages");
+    if (currentUserId == null) return const Stream.empty();
+    final ids = [currentUserId!, widget.uid]..sort();
+    final chatRoomId = ids.join("_");
 
     return FirebaseFirestore.instance
-        .collection('smit_chatting')
-        .doc(combineIds)
-        .collection('smit_messages')
+        .collection('chatting')
+        .doc(chatRoomId)
+        .collection('messages')
         .orderBy('timestamp', descending: false)
         .snapshots();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    print("Opening chat with ----> ${widget.email} (${widget.uid})");
-    return Scaffold(
-      appBar: AppBar(title: Text(widget.email), backgroundColor: Colors.teal),
-      body: Column(
-        children: [Expanded(child: buildMessagesList()), buildUserPrompt()],
-      ),
-    );
-  }
-
-  // Text Input
-  Widget buildUserPrompt() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: messageController,
-              decoration: const InputDecoration(
-                hintText: 'Enter message',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
-          IconButton(onPressed: sendMessage, icon: const Icon(Icons.send)),
-        ],
-      ),
-    );
-  }
-
-  // Display Single Message
-  Widget buildMessage(QueryDocumentSnapshot document) {
-    Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-    bool isCurrentUser = data['senderId'] == currentUserId;
-
-    print("Rendering message:");
-    print("Sender----> ${data['senderEmail']} (${data['senderId']})");
-    print("Message ----> ${data['message']}");
+  Widget buildMessage(QueryDocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    final isCurrentUser = data['senderId'] == currentUserId;
 
     return Align(
       alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-        padding: const EdgeInsets.all(12.0),
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: isCurrentUser ? Colors.teal.shade300 : Colors.grey.shade300,
           borderRadius: BorderRadius.circular(12),
         ),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.7,
-        ),
-        child: Text(data['message'], style: const TextStyle(fontSize: 16)),
+        child:
+            data['imageUrl'] != null && data['imageUrl'] != "No image"
+                ? Image.network(data['imageUrl'], width: 200)
+                : Text(data['message'], style: const TextStyle(fontSize: 16)),
       ),
     );
   }
 
-  // Display List of Messages
   Widget buildMessagesList() {
     return StreamBuilder<QuerySnapshot>(
       stream: getMessages(),
       builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          print("Error loading messages----> ${snapshot.error}");
-          return const Center(child: Text('Error loading messages'));
-        }
-
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          print("Loading messages...");
+        if (snapshot.hasError)
+          return const Center(child: Text("Error loading messages"));
+        if (snapshot.connectionState == ConnectionState.waiting)
           return const Center(child: CircularProgressIndicator());
-        }
-
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          print("No messages found.");
-          return const Center(child: Text('No messages yet'));
-        }
-
-        print("Messages loaded----> ${snapshot.data!.docs.length}");
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty)
+          return const Center(child: Text("No messages yet"));
 
         return ListView(
-          children:
-              snapshot.data!.docs.map((doc) => buildMessage(doc)).toList(),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          children: snapshot.data!.docs.map(buildMessage).toList(),
         );
       },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Chat with ${widget.email}'),
+        backgroundColor: Colors.teal,
+      ),
+      body: Column(
+        children: [
+          Expanded(child: buildMessagesList()),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                IconButton(onPressed: pickMedia, icon: const Icon(Icons.image)),
+                Expanded(
+                  child: TextField(
+                    controller: messageController,
+                    decoration: const InputDecoration(
+                      hintText: 'Type a message',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => sendMessage(),
+                  icon: const Icon(Icons.send),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

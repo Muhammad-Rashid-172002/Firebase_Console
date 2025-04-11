@@ -6,6 +6,7 @@ class ChattingModel {
   final String recieverId;
   final String message;
   final Timestamp timestamp;
+  final String? imageUrl;
 
   ChattingModel({
     required this.senderId,
@@ -13,6 +14,7 @@ class ChattingModel {
     required this.recieverId,
     required this.message,
     required this.timestamp,
+    required this.imageUrl,
   });
 
   Map<String, dynamic> toMap() {
@@ -23,5 +25,16 @@ class ChattingModel {
       'message': message,
       'timestamp': timestamp,
     };
+  }
+
+  factory ChattingModel.fromMap(Map<String, dynamic> map) {
+    return ChattingModel(
+      senderId: map['senderId'],
+      senderEmail: map['senderEmail'],
+      recieverId: map['recieverId'],
+      message: map['message'],
+      timestamp: map['timestamp'],
+      imageUrl: map['imageUrl'], // Add this line to include imageUrl
+    );
   }
 }
